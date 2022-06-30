@@ -1,7 +1,10 @@
 // decimal is a thin wrapper around github.com/cockroachdb/apd/v3.
 //
 // - provides support for JsonUnmarshal from both strings and integers.
-// - a set of API that is similar to github.com/shopspring/decimal.
+//
+// - a set of API that is similar to github.com/shopspring/decimal, where
+// a new value is created instead of setting to an `*Decimal`.
+//
 // - support cobra cli value.
 package decimal
 
@@ -18,11 +21,16 @@ type Decimal struct {
 	apd.Decimal
 }
 
+// NewFromString is forwarded from `apd.NewFromString`.
 func NewFromString(s string) (*Decimal, error) {
 	d, _, err := apd.NewFromString(s)
 	return &Decimal{Decimal: *d}, err
 }
 
+// UnmarshalJSON Unmarshals a json string or number into a Decimal.
+//
+// It first attempts to call the unmarshal method on `apd.Decimal`, which takes an
+// integer, and `SetString` of `apd.Decimal` after failure
 func (d *Decimal) UnmarshalJSON(data []byte) error {
 	err := json.Unmarshal(data, &d.Decimal)
 	if err != nil {
@@ -61,6 +69,7 @@ func NewBigIntFromUint64(i uint64) *apd.BigInt {
 	return SetUint64ToBigInt(i, apd.NewBigInt(0))
 }
 
+// NewFromUint64 converts an uint64 to a *Decimal
 func NewFromUint64(i uint64) *Decimal {
 	r := &Decimal{}
 	r.Decimal.Set(apd.NewWithBigInt(NewBigIntFromUint64(i), 0))
@@ -152,8 +161,11 @@ func (x *Decimal) BigInt() *big.Int {
 	return r
 }
 
-func (x *Decimal) Copy(d *Decimal) {
+// Copy set decimal to d
+func (x *Decimal) Copy(d *Decimal) *Decimal {
 	x.Decimal.Set(&d.Decimal)
+	return x
 }
 
+// Zero of the decimal
 var Zero = Decimal{}
