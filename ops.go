@@ -1,6 +1,10 @@
 package decimal
 
-import "github.com/cockroachdb/apd/v3"
+import (
+	"fmt"
+
+	"github.com/cockroachdb/apd/v3"
+)
 
 // decimal128 style
 var decimal128Context = apd.Context{
@@ -21,10 +25,14 @@ func getOrPanic(d *Decimal, err error) *Decimal {
 // TryDiv divides d by d1 (d/d1)
 func (d *Decimal) TryDiv(d1 *Decimal) (*Decimal, error) {
 	var r Decimal
-	_, err := decimal128Context.Quo(&r.Decimal, &d.Decimal, &d1.Decimal)
+	cond, err := decimal128Context.Quo(&r.Decimal, &d.Decimal, &d1.Decimal)
 	if err != nil {
 		return nil, err
 	}
+	if cond.Any() {
+		return nil, fmt.Errorf(cond.String())
+	}
+	r.Reduce(&r.Decimal)
 	return &r, nil
 }
 
@@ -37,11 +45,15 @@ func (d *Decimal) Div(d1 *Decimal) *Decimal {
 // TryMul multiply d by d1
 func (d *Decimal) TryMul(d1 *Decimal) (*Decimal, error) {
 	var r Decimal
-	_, err := decimal128Context.Mul(&r.Decimal, &d.Decimal, &d1.Decimal)
+	cond, err := decimal128Context.Mul(&r.Decimal, &d.Decimal, &d1.Decimal)
 	if err != nil {
 		return nil, err
 	}
 
+	if cond.Any() {
+		return nil, fmt.Errorf(cond.String())
+	}
+	r.Reduce(&r.Decimal)
 	return &r, nil
 }
 
@@ -54,11 +66,15 @@ func (d *Decimal) Mul(d1 *Decimal) *Decimal {
 // TryAdd adds d and d1
 func (d *Decimal) TryAdd(d1 *Decimal) (*Decimal, error) {
 	var r Decimal
-	_, err := decimal128Context.Add(&r.Decimal, &d.Decimal, &d1.Decimal)
+	cond, err := decimal128Context.Add(&r.Decimal, &d.Decimal, &d1.Decimal)
 	if err != nil {
 		return nil, err
 	}
 
+	if cond.Any() {
+		return nil, fmt.Errorf(cond.String())
+	}
+	r.Reduce(&r.Decimal)
 	return &r, nil
 }
 
@@ -71,11 +87,15 @@ func (d *Decimal) Add(d1 *Decimal) *Decimal {
 // TrySub subtracts d1 from d
 func (d *Decimal) TrySub(d1 *Decimal) (*Decimal, error) {
 	var r Decimal
-	_, err := decimal128Context.Sub(&r.Decimal, &d.Decimal, &d1.Decimal)
+	cond, err := decimal128Context.Sub(&r.Decimal, &d.Decimal, &d1.Decimal)
 	if err != nil {
 		return nil, err
 	}
 
+	if cond.Any() {
+		return nil, fmt.Errorf(cond.String())
+	}
+	r.Reduce(&r.Decimal)
 	return &r, nil
 }
 
