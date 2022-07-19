@@ -44,13 +44,20 @@ func (d *Decimal) UnmarshalJSON(data []byte) error {
 
 // Set is used to support cobra command line.
 func (d *Decimal) Set(s string) error {
-	_, _, err := d.Decimal.SetString(s)
-	return err
+	_, cond, err := d.Decimal.SetString(s)
+	if err != nil {
+		return err
+	}
+	if cond.Any() {
+		return fmt.Errorf("error setting string to decimal: %s", cond.String())
+	}
+
+	return nil
 }
 
 // Type is used to support cobra command line.
 func (d *Decimal) Type() string {
-	return "dydx.Decimal (wrapping github.com/cockroachdb/apd/v3 Decimal)"
+	return "Decimal (wrapping github.com/cockroachdb/apd/v3 Decimal)"
 }
 
 // Clone a Decimal
