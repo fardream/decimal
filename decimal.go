@@ -176,3 +176,40 @@ func (x *Decimal) Copy(d *Decimal) *Decimal {
 
 // Zero of the decimal
 var Zero = Decimal{}
+
+func New(coeff int64, exponent int32) *Decimal {
+	return &Decimal{
+		Decimal: *apd.New(coeff, exponent),
+	}
+}
+
+func NewFromInt(coeff int64) *Decimal {
+	return New(coeff, 0)
+}
+
+func (d *Decimal) forRounding(places int32, rounding apd.Rounder) *Decimal {
+	roundingContext := apd.Context{
+		Precision:   34,
+		MaxExponent: apd.MaxExponent,
+		MinExponent: apd.MinExponent,
+		Traps:       apd.DefaultTraps,
+		Rounding:    rounding,
+	}
+	dr, _ := d.TryMul(New(1, -places))
+	roundingContext.RoundToIntegralValue(&dr.Decimal, &dr.Decimal)
+	dr.Reduce(&dr.Decimal)
+	dr, _ = dr.TryMul(New(1, places))
+	return dr
+}
+
+func (d *Decimal) RoundUp(places int32) *Decimal {
+	return d.forRounding(places, apd.RoundUp)
+}
+
+func (d *Decimal) RoundDown(places int32) *Decimal {
+	return d.forRounding(places, apd.RoundDown)
+}
+
+func (d Decimal) String() string {
+	return d.Decimal.Text('f')
+}
