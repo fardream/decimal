@@ -149,11 +149,17 @@ func (x *Decimal) Uint64() uint64 {
 // Returns an error if the number is not an integer
 func (x *Decimal) TryBigInt() (*big.Int, error) {
 	var integ, frac apd.Decimal
-	x.Modf(&integ, &frac)
+	x.Decimal.Modf(&integ, &frac)
 	if !frac.IsZero() {
 		return nil, fmt.Errorf("%s: has fractional part", x.String())
 	}
-	return x.Coeff.MathBigInt(), nil
+	str := x.Decimal.Text('f')
+	r, ok := big.NewInt(0).SetString(str, 10)
+	if !ok {
+		return nil, fmt.Errorf("%s is not an integer", r)
+	}
+
+	return r, nil
 }
 
 // BigInt gets the `big.Int` representation of the decimal.
