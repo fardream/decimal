@@ -9,5 +9,5 @@ func (d *Decimal) GreaterThan(d1 *Decimal) bool {
 }
 
 func (d *Decimal) LessThan(d1 *Decimal) bool {
-	return d.Decimal.Cmp(&d1.Decimal) > 0
+	return d.Decimal.Cmp(&d1.Decimal) < 0
 }
